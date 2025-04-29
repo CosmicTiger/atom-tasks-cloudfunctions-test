@@ -69,20 +69,25 @@ class UserController implements Controller {
                     .json({ error: "Database not connected" });
             }
 
-            console.log(this.userFirestore);
-            const userRef = this.userFirestore.doc(email);
-            const userDoc = await userRef.get();
+            const userQuery = this.userFirestore.where("email", "==", email);
+            const userQueryDoc = await userQuery.get();
 
-            if (userDoc.exists) {
+            if (!userQueryDoc.empty) {
+                const userDoc = userQueryDoc.docs[0];
+                const userData = { id: userDoc.id, ...userDoc.data() };
+
                 return res.status(200).json({
                     message: "User already exists. Login successful.",
-                    data: userDoc.data(),
+                    data: userData,
                 });
             } else {
+                const userRef = this.userFirestore.doc();
                 await userRef.set({ email });
-                return res
-                    .status(201)
-                    .json({ message: "User created successfully" });
+                const userData = { id: userRef.id, email };
+                return res.status(201).json({
+                    message: "User created successfully",
+                    data: userData,
+                });
             }
         } catch (error) {
             console.error("Error logging in or creating user:", error);

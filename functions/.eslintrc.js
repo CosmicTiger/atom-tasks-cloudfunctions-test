@@ -6,6 +6,7 @@ module.exports = {
     },
     extends: [
         "eslint:recommended",
+        "prettier",
         "plugin:import/errors",
         "plugin:import/warnings",
         "plugin:import/typescript",
@@ -28,7 +29,20 @@ module.exports = {
     rules: {
         "quotes": ["error", "double"],
         "import/no-unresolved": 0,
-        "indent": ["error", 4],
+        "indent": ["error", 4, {
+            "SwitchCase": 1,
+            "ignoredNodes": [
+                "TemplateLiteral *",
+                "ConditionalExpression",
+                "JSXElement *",
+                "JSXElement",
+                "JSXFragment",
+                "JSXOpeningElement",
+                "JSXClosingElement",
+                "JSXAttribute",
+                "JSXSpreadAttribute",
+            ],
+        }],
         "max-len": ["error", { "code": 120 }],
         "object-curly-spacing": ["error", "always"],
         "comma-dangle": ["error", {
@@ -38,6 +52,7 @@ module.exports = {
             "exports": "always-multiline",
             "functions": "ignore",
         }],
+        "operator-linebreak": ["error", "before"],
         "new-cap": "off",
         "require-jsdoc": [
             "error",
