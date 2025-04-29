@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { loggerMiddleware } from "./middleware";
 import Controller from "./interface/controller.interface";
 
@@ -40,6 +41,7 @@ class App {
      */
     private initializeMiddlewares() {
         this.app.use(loggerMiddleware);
+        this.app.use(cors());
         this.app.use(express.json());
         this.app.use(express.urlencoded({ extended: true }));
     }
