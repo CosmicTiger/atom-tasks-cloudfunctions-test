@@ -94,11 +94,26 @@ class TaskController {
                     .json({ error: "Firestore not initialized" });
             }
 
-            const tasksSnapshot = await this.taskFirestore.get();
-            const tasks = tasksSnapshot.docs.map((doc) => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
+            const { limit = 10, startAfter } = req.query;
+            let query = this.taskFirestore
+                .orderBy("createdAt", "desc")
+                .limit(Number(limit));
+
+            if (startAfter) {
+                const timestamp = new Date(startAfter as string);
+                query = query.startAfter(timestamp);
+            }
+
+            const tasksSnapshot = await query.get();
+            const tasks = tasksSnapshot.docs.map((doc) => {
+                const task = doc.data();
+                return taskSchema.parse({
+                    id: doc.id,
+                    ...task,
+                    createdAt: task.createdAt.toDate(),
+                    updatedAt: task.updatedAt.toDate(),
+                });
+            });
 
             return res.status(200).json(tasks);
         } catch (error) {
@@ -199,12 +214,10 @@ class TaskController {
             const taskDoc = await taskRef.get();
             const taskFormatted = this.taskFormatter(taskDoc);
 
-            return res
-                .status(200)
-                .json({
-                    message: "Task updated successfully",
-                    data: taskFormatted,
-                });
+            return res.status(200).json({
+                message: "Task updated successfully",
+                data: taskFormatted,
+            });
         } catch (error) {
             console.error("Error updating task:", error);
             return res.status(500).json({ error: "Internal server error" });
