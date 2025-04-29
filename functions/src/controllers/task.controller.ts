@@ -105,15 +105,9 @@ class TaskController {
             }
 
             const tasksSnapshot = await query.get();
-            const tasks = tasksSnapshot.docs.map((doc) => {
-                const task = doc.data();
-                return taskSchema.parse({
-                    id: doc.id,
-                    ...task,
-                    createdAt: task.createdAt.toDate(),
-                    updatedAt: task.updatedAt.toDate(),
-                });
-            });
+            const tasks = tasksSnapshot.docs.map((doc) =>
+                this.taskFormatter(doc)
+            );
 
             return res.status(200).json(tasks);
         } catch (error) {

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const taskSchema = z.object({
+    id: z.string().optional(),
     title: z.string().min(1, {
         message: "This field has to be filled in order to create a task.",
     }),
