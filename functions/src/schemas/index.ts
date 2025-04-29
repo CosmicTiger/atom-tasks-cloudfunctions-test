@@ -1,4 +1,4 @@
 import { userLoginSchema } from "./user.schemas";
-import { taskSchema } from "./task.schemas";
+import { taskSchema, TaskSchemaType } from "./task.schemas";
 
-export { userLoginSchema, taskSchema };
+export { userLoginSchema, taskSchema, TaskSchemaType };

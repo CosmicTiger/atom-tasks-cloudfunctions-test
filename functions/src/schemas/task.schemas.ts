@@ -11,6 +11,20 @@ export const taskSchema = z.object({
         })
         .optional(),
     is_completed: z.boolean().optional().default(false),
-    createdBy: z.string().optional(),
-    updatedBy: z.string().optional(),
+    createdBy: z.string().default(() => "system"),
+    updatedBy: z
+        .string()
+        .optional()
+        .default(() => "system"),
+    createdAt: z
+        .date()
+        .optional()
+        .default(() => new Date()),
+
+    updatedAt: z
+        .date()
+        .optional()
+        .default(() => new Date()),
 });
+
+export type TaskSchemaType = z.infer<typeof taskSchema>;

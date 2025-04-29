@@ -2,7 +2,8 @@ import { Request, Response, Router } from "express";
 import { CollectionReference, DocumentData } from "firebase-admin/firestore";
 import { db } from "../config/firebase";
 import { validateData } from "../middleware/validateData.middleware";
-import { taskSchema } from "../schemas";
+import { taskSchema, TaskSchemaType } from "../schemas";
+import { DocumentSnapshot } from "firebase-functions/firestore";
 
 /**
  * @description TaskController is responsible for handling task-related routes and operations.
@@ -44,12 +45,37 @@ class TaskController {
             this.createTask.bind(this)
         );
         this.router.get(`${this.path}/:id`, this.getTaskById.bind(this));
-        this.router.put(`${this.path}/:id`, this.updateTask.bind(this));
+        this.router.put(
+            `${this.path}/:id`,
+            validateData(taskSchema),
+            this.updateTask.bind(this)
+        );
         this.router.patch(
             `${this.path}/:id/complete`,
             this.completeTask.bind(this)
         );
         this.router.delete(`${this.path}/:id`, this.deleteTask.bind(this));
+    }
+
+    /**
+     *
+     * @private
+     * @param {CollectionReference<DocumentData, DocumentData>} taskFromFirestore
+     * @return {*}  {TaskSchemaType}
+     * @memberof TaskController
+     */
+    private taskFormatter(taskFromFirestore: DocumentSnapshot): TaskSchemaType {
+        const task = taskFromFirestore.data();
+        if (!task) {
+            throw new Error("Task data is undefined");
+        }
+
+        return taskSchema.parse({
+            id: taskFromFirestore.id,
+            ...task,
+            createdAt: task.createdAt.toDate(),
+            updatedAt: task.updatedAt.toDate(),
+        });
     }
 
     /**
@@ -90,7 +116,7 @@ class TaskController {
      * @memberof TaskController
      */
     private async createTask(req: Request, res: Response) {
-        const taskData = req.body;
+        const taskData: TaskSchemaType = req.body;
 
         try {
             if (!this.taskFirestore) {
@@ -102,12 +128,12 @@ class TaskController {
             const taskRef = this.taskFirestore.doc();
             await taskRef.set(taskData);
 
+            const taskDoc = await taskRef.get();
+            const taskFormatted = this.taskFormatter(taskDoc);
+
             return res.status(201).json({
                 message: "Task created successfully",
-                task: {
-                    id: taskRef.id,
-                    ...(await taskRef.get()).data(),
-                },
+                data: taskFormatted,
             });
         } catch (error) {
             console.error("Error creating task:", error);
@@ -139,8 +165,9 @@ class TaskController {
             if (!taskDoc.exists) {
                 return res.status(404).json({ error: "Task not found" });
             }
+            const taskFormatted = this.taskFormatter(taskDoc);
 
-            return res.status(200).json({ id: taskDoc.id, ...taskDoc.data() });
+            return res.status(200).json(taskFormatted);
         } catch (error) {
             console.error("Error fetching task:", error);
             return res.status(500).json({ error: "Internal server error" });
@@ -157,7 +184,7 @@ class TaskController {
      */
     private async updateTask(req: Request, res: Response) {
         const { id } = req.params;
-        const taskData = req.body;
+        const taskData: TaskSchemaType = req.body;
 
         try {
             if (!this.taskFirestore) {
@@ -169,9 +196,15 @@ class TaskController {
             const taskRef = this.taskFirestore.doc(id);
             await taskRef.update(taskData);
 
+            const taskDoc = await taskRef.get();
+            const taskFormatted = this.taskFormatter(taskDoc);
+
             return res
                 .status(200)
-                .json({ message: "Task updated successfully" });
+                .json({
+                    message: "Task updated successfully",
+                    data: taskFormatted,
+                });
         } catch (error) {
             console.error("Error updating task:", error);
             return res.status(500).json({ error: "Internal server error" });
