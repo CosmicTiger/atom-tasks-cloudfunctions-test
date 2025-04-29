@@ -43,6 +43,7 @@ module.exports = {
                 "JSXSpreadAttribute",
             ],
         }],
+        "no-tabs": ["error", { allowIndentationTabs: true }],
         "max-len": ["error", { "code": 120 }],
         "object-curly-spacing": ["error", "always"],
         "comma-dangle": ["error", {

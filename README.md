@@ -36,20 +36,6 @@ y buenas prácticas de desarrollo.
 
 ---
 
-Node.js + TypeScript
-
-Express.js sobre Firebase Cloud Functions
-
-Google Firestore (NoSQL)
-
-Zod para validaciones
-
-ESLint + Prettier (configuración estricta)
-
-Modularización por capas (Controller, Middleware, Schemas, Interface)
-
-VS Code WSL Ready 💻
-
 ## 📁 Estructura del Proyecto
 
 ```bash
