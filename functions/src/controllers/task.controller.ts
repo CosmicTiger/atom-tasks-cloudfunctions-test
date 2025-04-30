@@ -188,7 +188,10 @@ class TaskController {
             }
             const taskFormatted = this.taskFormatter(taskDoc);
 
-            return res.status(200).json(taskFormatted);
+            return res.status(200).json({
+                message: "Task fetched successfully",
+                data: taskFormatted,
+            });
         } catch (error) {
             console.error("Error fetching task:", error);
             return res.status(500).json({ error: "Internal server error" });
