@@ -1,5 +1,13 @@
 import { z } from "zod";
 
+const dateFieldPreprocessOptional = z.preprocess(
+    (val) =>
+        typeof val === "string" || val instanceof Date
+            ? new Date(val)
+            : undefined,
+    z.date().optional()
+);
+
 export const taskSchema = z.object({
     id: z.string().optional(),
     title: z.string().min(1, {
@@ -17,15 +25,8 @@ export const taskSchema = z.object({
         .string()
         .optional()
         .default(() => "system"),
-    createdAt: z
-        .date()
-        .optional()
-        .default(() => new Date()),
-
-    updatedAt: z
-        .date()
-        .optional()
-        .default(() => new Date()),
+    createdAt: dateFieldPreprocessOptional,
+    updatedAt: dateFieldPreprocessOptional,
 });
 
 export type TaskSchemaType = z.infer<typeof taskSchema>;
