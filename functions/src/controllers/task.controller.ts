@@ -249,7 +249,19 @@ class TaskController {
             }
 
             const taskRef = this.taskFirestore.doc(id);
-            await taskRef.update({ isCompleted: true });
+            const taskDoc = await taskRef.get();
+
+            if (!taskDoc.exists) {
+                return res
+                    .status(404)
+                    .json({ error: "Task reference not found" });
+            }
+            const task = taskDoc.data();
+
+            if (!task) {
+                return res.status(404).json({ error: "Task data not found" });
+            }
+            await taskRef.update({ isCompleted: !task.isCompleted });
 
             return res.status(200).json({ message: "Task changed status" });
         } catch (error) {
