@@ -51,8 +51,8 @@ class TaskController {
             this.updateTask.bind(this)
         );
         this.router.patch(
-            `${this.path}/:id/complete`,
-            this.completeTask.bind(this)
+            `${this.path}/:id/status-change`,
+            this.changeStatusTask.bind(this)
         );
         this.router.delete(`${this.path}/:id`, this.deleteTask.bind(this));
     }
@@ -94,7 +94,7 @@ class TaskController {
                     .json({ error: "Firestore not initialized" });
             }
 
-            const { limit = 10, startAfter } = req.query;
+            const { limit = 10, startAfter, createdByFilter } = req.query;
             let query = this.taskFirestore
                 .orderBy("createdAt", "desc")
                 .limit(Number(limit));
@@ -104,12 +104,24 @@ class TaskController {
                 query = query.startAfter(timestamp);
             }
 
+            if (createdByFilter) {
+                query = query.where(
+                    "createdBy",
+                    "==",
+                    createdByFilter as string
+                );
+            }
+
             const tasksSnapshot = await query.get();
             const tasks = tasksSnapshot.docs.map((doc) =>
                 this.taskFormatter(doc)
             );
 
-            return res.status(200).json(tasks);
+            return res.status(200).json({
+                message: "Tasks fetched successfully",
+                data: tasks,
+                nextPage: tasksSnapshot.docs.length === Number(limit),
+            });
         } catch (error) {
             console.error("Error fetching tasks:", error);
             return res.status(500).json({ error: "Internal server error" });
@@ -226,7 +238,7 @@ class TaskController {
      * @param {Response} res
      * @memberof TaskController
      */
-    private async completeTask(req: Request, res: Response) {
+    private async changeStatusTask(req: Request, res: Response) {
         const { id } = req.params;
 
         try {
@@ -237,7 +249,7 @@ class TaskController {
             }
 
             const taskRef = this.taskFirestore.doc(id);
-            await taskRef.update({ is_completed: true });
+            await taskRef.update({ isCompleted: true });
 
             return res.status(200).json({ message: "Task changed status" });
         } catch (error) {

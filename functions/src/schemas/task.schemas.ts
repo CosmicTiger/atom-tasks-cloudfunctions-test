@@ -11,7 +11,7 @@ export const taskSchema = z.object({
             message: "The description should not be major than 250 characters",
         })
         .optional(),
-    is_completed: z.boolean().optional().default(false),
+    isCompleted: z.boolean().optional().default(false),
     createdBy: z.string().default(() => "system"),
     updatedBy: z
         .string()
